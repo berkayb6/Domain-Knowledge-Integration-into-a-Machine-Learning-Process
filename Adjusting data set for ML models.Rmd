@@ -1,0 +1,98 @@
+---
+title: "MRO-Daten"
+output: html_document
+date: "2023-09-18"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+if (!require(install.load)) {
+  install.packages("install.load")
+  library(install.load)
+}
+install_load("tidyverse", "readr","readxl","openxlsx", "leaflet", "dplyr", "ggplot2", "qcc", "knitr", "plotly", "geosphere", "kableExtra")
+```
+
+## Importing the data sheet, an empty blank will replace those where an NA stands. 
+
+```{r pressure, echo=FALSE}
+MRO_Data<- read.xlsx("qn_prediction_fused_dataset_modified.xlsx", colNames = T, sheet="Sheet1")
+
+MRO_Data<- MRO_Data %>% filter(ddc_merge == "both")
+MRO_Data[is.na(MRO_Data)] <- ""
+```
+
+Calibrating the columns so that they have the measured value, and not the difference
+```{r}
+MRO_Data$IA_WALL_THICKNESS_AIRFOIL_C1 <- -MRO_Data$IA_WALL_THICKNESS_AIRFOIL_C1 + 3.2
+MRO_Data$IA_WALL_THICKNESS_AIRFOIL_F2 <- -MRO_Data$IA_WALL_THICKNESS_AIRFOIL_F2 + 1.8
+MRO_Data$IA_WALL_THICKNESS_AIRFOIL_K3 <- -MRO_Data$IA_WALL_THICKNESS_AIRFOIL_K3 + 1.4
+MRO_Data$IA_WALL_THICKNESS_AIRFOIL_C5 <- -as.numeric(MRO_Data$IA_WALL_THICKNESS_AIRFOIL_C5) + 3.6
+MRO_Data$IA_WALL_THICKNESS_AIRFOIL_F6 <- -MRO_Data$IA_WALL_THICKNESS_AIRFOIL_F6 + 2.1
+MRO_Data$IA_WALL_THICKNESS_AIRFOIL_K7 <- -MRO_Data$IA_WALL_THICKNESS_AIRFOIL_K7 + 1.6
+MRO_Data$IA_WALL_THICKNESS_AIRFOIL_C9 <- -MRO_Data$IA_WALL_THICKNESS_AIRFOIL_C9 + 2.7
+MRO_Data$IA_WALL_THICKNESS_AIRFOIL_F10 <- -MRO_Data$IA_WALL_THICKNESS_AIRFOIL_F10 + 1.9
+MRO_Data$IA_WALL_THICKNESS_AIRFOIL_K11 <- -MRO_Data$IA_WALL_THICKNESS_AIRFOIL_K11 + 1.7
+MRO_Data$IA_WALL_THICKNESS_AIRFOIL_C12 <- -MRO_Data$IA_WALL_THICKNESS_AIRFOIL_C12 + 4.2
+MRO_Data$IA_WALL_THICKNESS_AIRFOIL_F13 <- -MRO_Data$IA_WALL_THICKNESS_AIRFOIL_F13 + 2.6
+MRO_Data$IA_WALL_THICKNESS_AIRFOIL_K14 <- -MRO_Data$IA_WALL_THICKNESS_AIRFOIL_K14 + 1.4
+MRO_Data$IA_WALL_THICKNESS_AIRFOIL_C16 <- -MRO_Data$IA_WALL_THICKNESS_AIRFOIL_C16 + 5.2
+MRO_Data$IA_WALL_THICKNESS_AIRFOIL_F17 <- -MRO_Data$IA_WALL_THICKNESS_AIRFOIL_F17 + 2.9
+MRO_Data$IA_WALL_THICKNESS_AIRFOIL_K18 <- -MRO_Data$IA_WALL_THICKNESS_AIRFOIL_K18 + 1.6
+MRO_Data$IA_WALL_THICKNESS_AIRFOIL_C20 <- -MRO_Data$IA_WALL_THICKNESS_AIRFOIL_C20 + 2.9
+MRO_Data$IA_WALL_THICKNESS_AIRFOIL_F21 <- -MRO_Data$IA_WALL_THICKNESS_AIRFOIL_F21 + 1.7
+MRO_Data$IA_WALL_THICKNESS_AIRFOIL_K22 <- -MRO_Data$IA_WALL_THICKNESS_AIRFOIL_K22 + 1.3
+MRO_Data$IA_WALL_THICKNESS_AIRFOIL_C23 <- -MRO_Data$IA_WALL_THICKNESS_AIRFOIL_C23 + 0.9
+MRO_Data$IA_WALL_THICKNESS_AIRFOIL_D24 <- -MRO_Data$IA_WALL_THICKNESS_AIRFOIL_D24 + 0.9
+MRO_Data$IA_WALL_THICKNESS_AIRFOIL_F25 <- -MRO_Data$IA_WALL_THICKNESS_AIRFOIL_F25 + 0.9
+MRO_Data$IA_WALL_THICKNESS_AIRFOIL_H26 <- -MRO_Data$IA_WALL_THICKNESS_AIRFOIL_H26 + 0.9
+MRO_Data$IA_WALL_THICKNESS_AIRFOIL_K27 <- -MRO_Data$IA_WALL_THICKNESS_AIRFOIL_K27 + 0.9
+```
+
+```{r}
+# Assigning the labels from the corresponding column
+Labels <- MRO_Data$Disposition
+
+# Sub-setting the data set so that only relevant features and their label remain at the end.
+Whole_Data <- subset(MRO_Data, select = c(IA_WALL_THICKNESS_AIRFOIL_C1, IA_WALL_THICKNESS_AIRFOIL_F2, IA_WALL_THICKNESS_AIRFOIL_K3, IA_WALL_THICKNESS_AIRFOIL_C5, IA_WALL_THICKNESS_AIRFOIL_F6, IA_WALL_THICKNESS_AIRFOIL_K7, IA_WALL_THICKNESS_AIRFOIL_C9, IA_WALL_THICKNESS_AIRFOIL_F10, IA_WALL_THICKNESS_AIRFOIL_K11, IA_WALL_THICKNESS_AIRFOIL_C12, IA_WALL_THICKNESS_AIRFOIL_F13, IA_WALL_THICKNESS_AIRFOIL_K14, IA_WALL_THICKNESS_AIRFOIL_C16, IA_WALL_THICKNESS_AIRFOIL_F17, IA_WALL_THICKNESS_AIRFOIL_K18, IA_WALL_THICKNESS_AIRFOIL_C20, IA_WALL_THICKNESS_AIRFOIL_F21, IA_WALL_THICKNESS_AIRFOIL_K22, IA_WALL_THICKNESS_AIRFOIL_C23, IA_WALL_THICKNESS_AIRFOIL_D24, IA_WALL_THICKNESS_AIRFOIL_F25, IA_WALL_THICKNESS_AIRFOIL_H26, IA_WALL_THICKNESS_AIRFOIL_K27, Disposition))
+
+# Cloning the whole data, because the original one does not properly work on training of the NN models
+Whole_Data2 <- Whole_Data
+
+# After searching out for the NA instances, there is only one NA instance. The missing data is fulfilled as the mean of the all data points in that feature:
+Whole_Data2[is.na(Whole_Data2)] <- mean(Whole_Data$IA_WALL_THICKNESS_AIRFOIL_C5)
+```
+
+```{r}
+# Since a binary classification will be made, the classes are rewritten as integers.
+Labels_as_numbers <- c()
+for (x in Labels)
+  if (x== "Use as is"){
+    Labels_as_numbers <- append(Labels_as_numbers, 0)
+  }else{
+    Labels_as_numbers <- append(Labels_as_numbers, 1)
+  }
+  
+```
+
+```{r}
+# The integer representation of labels is added to the data set as a column:
+Whole_Data2$Labels_as_Integers<- Labels_as_numbers
+```
+
+```{r}
+# Exporting the data set
+write.csv(Whole_Data2, file.path("Data_with_number_labels.csv"), row.names= FALSE)
+```
+
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
